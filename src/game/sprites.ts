@@ -347,6 +347,91 @@ export class SpriteRenderer {
       ctx.arc(ox, oy, 4, 0, Math.PI * 2);
       ctx.arc(-ox, -oy, 4, 0, Math.PI * 2);
       ctx.fill();
+    } else if (enemy.kind === 'CHARGER_FAIRY') {
+      // Charger fairy (돌진 요정 - 몸통박치기)
+      // Flaming swept-back wings
+      ctx.fillStyle = isHit ? '#ffffff' : 'rgba(239, 68, 68, 0.8)';
+      ctx.beginPath();
+      ctx.moveTo(0, 8);
+      ctx.lineTo(-14, -12);
+      ctx.lineTo(0, -6);
+      ctx.lineTo(14, -12);
+      ctx.closePath();
+      ctx.fill();
+
+      // Body & Charging Flame Core
+      ctx.fillStyle = isHit ? '#ffffff' : '#ea580c';
+      ctx.beginPath();
+      ctx.arc(0, 0, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Glowing Eyes
+      ctx.fillStyle = '#fef08a';
+      ctx.fillRect(-3, -2, 2, 2);
+      ctx.fillRect(1, -2, 2, 2);
+
+      // Trailing thruster sparks
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(-2, -10, 4, 6 + (Math.sin(frame * 0.4) * 3));
+    } else if (enemy.kind === 'YIN_YANG_ORB') {
+      // Yin-Yang Orb (음양옥 - 탄성 바운스 몸통박치기 구체)
+      ctx.save();
+      ctx.rotate(frame * 0.12);
+
+      // Outer Sphere
+      const r = enemy.radius || 12;
+      ctx.fillStyle = isHit ? '#ffffff' : '#dc2626'; // Red half
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#f8fafc'; // White half
+      ctx.beginPath();
+      ctx.arc(0, 0, r, -Math.PI / 2, Math.PI / 2);
+      ctx.fill();
+
+      // Yin-Yang Swirls
+      ctx.fillStyle = '#dc2626';
+      ctx.beginPath();
+      ctx.arc(0, -r / 2, r / 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#f8fafc';
+      ctx.beginPath();
+      ctx.arc(0, r / 2, r / 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Dots
+      ctx.fillStyle = '#f8fafc';
+      ctx.beginPath();
+      ctx.arc(0, -r / 2, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#dc2626';
+      ctx.beginPath();
+      ctx.arc(0, r / 2, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    } else if (enemy.kind === 'LASER_FAIRY') {
+      // Laser Sorceress Fairy
+      ctx.fillStyle = isHit ? '#ffffff' : 'rgba(99, 102, 241, 0.7)';
+      ctx.beginPath();
+      ctx.ellipse(-10, -3, 8, 12 + flap, -0.3, 0, Math.PI * 2);
+      ctx.ellipse(10, -3, 8, 12 + flap, 0.3, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = isHit ? '#ffffff' : '#4338ca';
+      ctx.beginPath();
+      ctx.arc(0, 0, 7, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Focus Wand
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(-1.5, 4, 3, 10);
+      ctx.beginPath();
+      ctx.arc(0, 15, 3.5, 0, Math.PI * 2);
+      ctx.fill();
     }
 
     ctx.restore();
@@ -462,28 +547,150 @@ export class SpriteRenderer {
     ctx.translate(Math.round(bullet.x), Math.round(bullet.y));
 
     if (!bullet.isEnemy) {
-      // Player shot: Sleek vertical needle or homing talisman
-      if (bullet.tag === 'homing') {
-        ctx.fillStyle = '#38bdf8';
-        ctx.beginPath();
-        ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(0, 0, 1.8, 0, Math.PI * 2);
-        ctx.fill();
-      } else {
-        ctx.fillStyle = '#38bdf8';
-        ctx.fillRect(-2, -7, 4, 14);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(-1, -5, 2, 10);
+      // Rotate if directional angle is present
+      if (bullet.angle !== -Math.PI / 2) {
+        ctx.rotate(bullet.angle + Math.PI / 2);
       }
+
+      const tag = bullet.tag;
+
+      if (tag === 'lynn_star') {
+        // Lynn Unfocused: 5-pointed rotating Starlight
+        ctx.save();
+        ctx.rotate(bullet.lifeTime * 0.18);
+        const r = 6;
+        ctx.fillStyle = '#fde047';
+        ctx.beginPath();
+        for (let i = 0; i < 5; i++) {
+          const aOuter = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+          const aInner = aOuter + Math.PI / 5;
+          if (i === 0) ctx.moveTo(Math.cos(aOuter) * r, Math.sin(aOuter) * r);
+          else ctx.lineTo(Math.cos(aOuter) * r, Math.sin(aOuter) * r);
+          ctx.lineTo(Math.cos(aInner) * (r * 0.45), Math.sin(aInner) * (r * 0.45));
+        }
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(0, 0, 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      } else if (tag === 'lynn_laser') {
+        // Lynn Focused: Piercing Starlight Laser Stream
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
+        ctx.fillRect(-4, -14, 8, 28);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(-2.5, -12, 5, 24);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-1, -10, 2, 20);
+      } else if (tag === 'miya_main') {
+        // Miya Main: Silver & Violet Chrono Dagger (시계침 비도)
+        ctx.fillStyle = '#c084fc';
+        ctx.beginPath();
+        ctx.moveTo(0, -9);
+        ctx.lineTo(3, 2);
+        ctx.lineTo(1.5, 6);
+        ctx.lineTo(-1.5, 6);
+        ctx.lineTo(-3, 2);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(0, -7);
+        ctx.lineTo(1.5, 1);
+        ctx.lineTo(0, 5);
+        ctx.lineTo(-1.5, 1);
+        ctx.closePath();
+        ctx.fill();
+      } else if (tag === 'miya_gear') {
+        // Miya Unfocused: Rotating Chrono Gear (시공의 톱니바퀴)
+        ctx.save();
+        ctx.rotate(bullet.lifeTime * 0.22);
+        const r = 5.5;
+        ctx.fillStyle = '#a855f7';
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Gear cogs / teeth (6 teeth)
+        ctx.fillStyle = '#c084fc';
+        for (let i = 0; i < 6; i++) {
+          ctx.rotate(Math.PI / 3);
+          ctx.fillRect(-1.5, -r - 2, 3, 3);
+        }
+
+        // Inner axle
+        ctx.fillStyle = '#fef08a';
+        ctx.beginPath();
+        ctx.arc(0, 0, 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      } else if (tag === 'miya_needle') {
+        // Miya Focused: Parallel Time Piercing Needle
+        ctx.fillStyle = '#818cf8';
+        ctx.fillRect(-1.5, -10, 3, 20);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-0.7, -9, 1.4, 18);
+      } else if (tag === 'kaede_ofuda') {
+        // Kaede Main: Crimson Exorcism Ofuda (퇴마 부적)
+        // Red paper border
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(-3.5, -7, 7, 14);
+        // White inner talisman paper
+        ctx.fillStyle = '#fffbeb';
+        ctx.fillRect(-2.5, -6, 5, 12);
+        // Crimson mystic seal character
+        ctx.fillStyle = '#dc2626';
+        ctx.fillRect(-1, -4, 2, 5);
+        ctx.fillRect(-1.5, -2, 3, 1.5);
+        ctx.fillRect(-1.5, 2, 3, 2);
+      } else if (tag === 'kaede_yin_yang') {
+        // Kaede Unfocused: Mini Spinning Yin-Yang Orb
+        ctx.save();
+        ctx.rotate(bullet.lifeTime * 0.16);
+        const r = 5;
+        // Red half
+        ctx.fillStyle = '#dc2626';
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.fill();
+        // White half
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(0, 0, r, -Math.PI / 2, Math.PI / 2);
+        ctx.fill();
+        // Swirl circles
+        ctx.fillStyle = '#dc2626';
+        ctx.beginPath();
+        ctx.arc(0, -r / 2, r / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(0, r / 2, r / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      } else if (tag === 'kaede_needle') {
+        // Kaede Focused: Consecrated Barrier Needle
+        ctx.fillStyle = '#f43f5e';
+        ctx.fillRect(-1.5, -8, 3, 16);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-0.7, -6, 1.4, 12);
+      } else {
+        // Lynn Main / Default Starlight Ray
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(-2, -8, 4, 16);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-1, -6, 2, 12);
+      }
+
       ctx.restore();
       return;
     }
 
     // Rotate towards movement angle for directional bullets
-    if (bullet.kind === 'RICE' || bullet.kind === 'KNIFE') {
+    if (bullet.kind === 'RICE' || bullet.kind === 'KNIFE' || bullet.kind === 'LASER' || bullet.kind === 'BUTTERFLY') {
       ctx.rotate(bullet.angle);
     }
 
@@ -516,6 +723,133 @@ export class SpriteRenderer {
       ctx.lineTo(0, 4);
       ctx.lineTo(-1.8, 2);
       ctx.closePath();
+      ctx.fill();
+    } else if (bullet.kind === 'STAR') {
+      // Star bullet (별탄 - 5각 회전 별)
+      ctx.save();
+      ctx.rotate(bullet.lifeTime * 0.08);
+      const outerR = bullet.drawRadius || 7;
+      const innerR = outerR * 0.45;
+      
+      // Outer glow & points
+      ctx.fillStyle = bullet.color;
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const aOuter = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+        const aInner = aOuter + Math.PI / 5;
+        if (i === 0) {
+          ctx.moveTo(Math.cos(aOuter) * outerR, Math.sin(aOuter) * outerR);
+        } else {
+          ctx.lineTo(Math.cos(aOuter) * outerR, Math.sin(aOuter) * outerR);
+        }
+        ctx.lineTo(Math.cos(aInner) * innerR, Math.sin(aInner) * innerR);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      // White inner core
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const aOuter = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+        const aInner = aOuter + Math.PI / 5;
+        const coreOuter = outerR * 0.5;
+        const coreInner = innerR * 0.5;
+        if (i === 0) {
+          ctx.moveTo(Math.cos(aOuter) * coreOuter, Math.sin(aOuter) * coreOuter);
+        } else {
+          ctx.lineTo(Math.cos(aOuter) * coreOuter, Math.sin(aOuter) * coreOuter);
+        }
+        ctx.lineTo(Math.cos(aInner) * coreInner, Math.sin(aInner) * coreInner);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    } else if (bullet.kind === 'BUTTERFLY') {
+      // Butterfly bullet (나비탄 - 펄럭이는 쌍날개 탄)
+      const flap = Math.sin(bullet.lifeTime * 0.25) * 0.35 + 0.9;
+      ctx.save();
+      // Outer wings
+      ctx.fillStyle = bullet.color;
+      ctx.beginPath();
+      // Left wing
+      ctx.ellipse(-5 * flap, -2, 5 * flap, 7, -0.4, 0, Math.PI * 2);
+      // Right wing
+      ctx.ellipse(5 * flap, -2, 5 * flap, 7, 0.4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Inner wing highlight
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.ellipse(-4 * flap, -2, 2.5 * flap, 4, -0.4, 0, Math.PI * 2);
+      ctx.ellipse(4 * flap, -2, 2.5 * flap, 4, 0.4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Slender body & antenna
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 1.6, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    } else if (bullet.kind === 'LASER') {
+      // Laser Lance / Beam bullet (관통형 직선 레이저탄)
+      const len = bullet.laserLength || 34;
+      const halfW = 3.5;
+      ctx.save();
+      // Outer colored beam
+      ctx.fillStyle = bullet.color;
+      ctx.beginPath();
+      ctx.moveTo(0, -len);
+      ctx.lineTo(halfW, -len + 6);
+      ctx.lineTo(halfW, len - 6);
+      ctx.lineTo(0, len);
+      ctx.lineTo(-halfW, len - 6);
+      ctx.lineTo(-halfW, -len + 6);
+      ctx.closePath();
+      ctx.fill();
+
+      // Intense white core
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(0, -len + 3);
+      ctx.lineTo(halfW * 0.4, -len + 7);
+      ctx.lineTo(halfW * 0.4, len - 7);
+      ctx.lineTo(0, len - 3);
+      ctx.lineTo(-halfW * 0.4, len - 7);
+      ctx.lineTo(-halfW * 0.4, -len + 7);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    } else if (bullet.kind === 'BURST_ORB') {
+      // Burst Orb bullet (분열탄 - 시한 폭발 구체)
+      const pulse = Math.sin(bullet.lifeTime * 0.2) * 1.5;
+      const r = (bullet.drawRadius || 9) + pulse;
+
+      // Energy core
+      ctx.fillStyle = bullet.color;
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Pulsing cross spikes
+      ctx.save();
+      ctx.rotate(bullet.lifeTime * 0.1);
+      ctx.fillStyle = '#ffffff';
+      for (let i = 0; i < 4; i++) {
+        ctx.rotate(Math.PI / 2);
+        ctx.beginPath();
+        ctx.moveTo(0, -r - 4);
+        ctx.lineTo(2.5, -r + 1);
+        ctx.lineTo(-2.5, -r + 1);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // Core white glow
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 0.5, 0, Math.PI * 2);
       ctx.fill();
     } else if (bullet.kind === 'LARGE') {
       // Large heavy bullet (큰 탄)

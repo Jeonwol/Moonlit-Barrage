@@ -4,7 +4,7 @@ export type Difficulty = 'Easy' | 'Normal' | 'Hard' | 'Lunatic';
 
 export type GameState = 'TITLE' | 'PLAYING' | 'PAUSED' | 'GAMEOVER' | 'CLEARED';
 
-export type BulletKind = 'SMALL' | 'RICE' | 'KNIFE' | 'PELLET' | 'LARGE';
+export type BulletKind = 'SMALL' | 'RICE' | 'KNIFE' | 'PELLET' | 'LARGE' | 'STAR' | 'BUTTERFLY' | 'LASER' | 'BURST_ORB';
 
 export interface Bullet {
   id: number;
@@ -23,13 +23,25 @@ export interface Bullet {
   hitRadius: number; // Small hitbox
   drawRadius: number; // Visual radius
   isEnemy: boolean;
+  damage?: number;
+  piercing?: boolean;
   grazed?: boolean;
   tag?: string;
   lifeTime: number;
+  laserLength?: number;
+  splitTime?: number;
   onUpdate?: (bullet: Bullet, frame: number, player: PlayerEntity) => void;
 }
 
-export type EnemyKind = 'SQUAD_FAIRY' | 'CROSSING_FAIRY' | 'BIG_FAIRY' | 'MID_BOSS' | 'BOSS';
+export type EnemyKind =
+  | 'SQUAD_FAIRY'
+  | 'CROSSING_FAIRY'
+  | 'BIG_FAIRY'
+  | 'CHARGER_FAIRY'
+  | 'YIN_YANG_ORB'
+  | 'LASER_FAIRY'
+  | 'MID_BOSS'
+  | 'BOSS';
 
 export interface EnemyDrop {
   type: ItemKind;

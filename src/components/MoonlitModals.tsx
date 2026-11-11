@@ -9,7 +9,7 @@ export const CHARACTERS: CharacterInfo[] = [
     title: '별빛의 마도사',
     avatarColor: '#0d9488',
     speedText: '보통 (4.6 / 저속 2.0)',
-    shotDesc: '별빛 침탄 + 유도 스타 탈리스만',
+    shotDesc: '성광 레이저 / [유도] 황금 별탄 / [저속] 관통 빔',
     bombName: '성광「마스터 노바」',
     bombDesc: '정면 광범위 고출력 광선 빔! 전방 탄막을 소거하며 적을 관통 파괴',
   },
@@ -19,7 +19,7 @@ export const CHARACTERS: CharacterInfo[] = [
     title: '시간의 무녀',
     avatarColor: '#6366f1',
     speedText: '고속 (4.8 / 저속 2.1)',
-    shotDesc: '고속 은빛 비도 + 직진 집중 단검',
+    shotDesc: '시계침 비도 / [유도] 시공 지연 톱니바퀴 / [저속] 4열 침',
     bombName: '시부「크로노스 스피어」',
     bombDesc: '전체 탄막 소거 + 5초간 적과 적 탄막이 70% 초저속(슬로우)으로 감속!',
   },
@@ -29,7 +29,7 @@ export const CHARACTERS: CharacterInfo[] = [
     title: '홍련의 결계사',
     avatarColor: '#dc2626',
     speedText: '균형 (4.5 / 저속 1.9)',
-    shotDesc: '홍련 부적 3방향 확산 + 음양옥',
+    shotDesc: '퇴마 부적 / [유도] 홍련 음양옥 / [저속] 봉마 침탄',
     bombName: '봉마부「홍련의 결계」',
     bombDesc: '8개의 거대 결계가 팽창하여 화면 전체 탄막 소거 및 전방위 타격',
   },
@@ -142,10 +142,19 @@ export const MoonlitModals: React.FC<MoonlitModalsProps> = ({
                       {char.title}
                     </div>
 
-                    {/* Bomb Badge */}
-                    <div className="w-full bg-slate-900/90 rounded p-1 border border-slate-800 text-[6.5px] leading-tight text-slate-300">
-                      <div className="text-amber-400 font-bold truncate">★ {char.bombName}</div>
-                      <div className="text-slate-400 line-clamp-2 mt-0.5">{char.bombDesc}</div>
+                    {/* Shot & Bomb Badges */}
+                    <div className="w-full bg-slate-900/95 rounded p-1.5 border border-slate-800 text-[6.5px] leading-tight text-slate-300 space-y-1">
+                      <div>
+                        <div className="text-cyan-300 font-bold flex items-center gap-0.5">
+                          <Zap className="w-2.5 h-2.5 text-cyan-400 shrink-0" />
+                          <span>일반 샷</span>
+                        </div>
+                        <div className="text-slate-300 line-clamp-2 mt-0.5">{char.shotDesc}</div>
+                      </div>
+                      <div className="pt-1 border-t border-slate-800/80">
+                        <div className="text-amber-400 font-bold truncate">★ {char.bombName}</div>
+                        <div className="text-slate-400 line-clamp-2 mt-0.5">{char.bombDesc}</div>
+                      </div>
                     </div>
                   </button>
                 );
@@ -153,7 +162,7 @@ export const MoonlitModals: React.FC<MoonlitModalsProps> = ({
             </div>
           </div>
 
-          {/* Quick Key Bindings */}
+          {/* Quick Key Bindings & Tactical Info */}
           <div className="bg-slate-950/90 rounded-lg p-2.5 text-left border border-slate-800 text-[7.5px] space-y-1 mb-3 leading-relaxed">
             <div className="flex gap-2">
               <span className="text-amber-300 font-bold shrink-0">Z:</span>
@@ -166,6 +175,14 @@ export const MoonlitModals: React.FC<MoonlitModalsProps> = ({
             <div className="flex gap-2">
               <span className="text-cyan-300 font-bold shrink-0">Shift:</span>
               <span className="text-slate-300">저속 모드 + 코어 피격 판정점(2.2px) 표시 + 옵션 집중</span>
+            </div>
+            <div className="pt-1 border-t border-slate-800/80 flex flex-col gap-0.5 text-[7px]">
+              <div className="text-amber-400 font-semibold">
+                💥 돌진형 적: 불꽃 요정 / 벽반사 음양옥 (고속 몸통박치기 주의!)
+              </div>
+              <div className="text-purple-300">
+                🔮 탄막형 적: 쌀알·별탄·나비탄·관통 레이저·8방향 분열탄
+              </div>
             </div>
           </div>
 

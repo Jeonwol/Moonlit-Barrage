@@ -4,6 +4,7 @@ import {
   BossEntity,
   BossPhase,
   Bullet,
+  BulletKind,
   CharacterId,
   Difficulty,
   EnemyEntity,
@@ -378,41 +379,127 @@ export class MoonlitEngine {
 
   private firePlayerShot(focus: boolean) {
     const p = this.player;
+    const char = p.characterId;
     soundManager.playShot();
 
-    // Main Shot: 2 bullets (dx ±7), dmg 2.6, speed 15
-    this.bullets.push({
-      id: this.nextId++,
-      x: p.x - 7,
-      y: p.y - 12,
-      vx: 0,
-      vy: -15,
-      speed: 15,
-      angle: -Math.PI / 2,
-      kind: 'PELLET',
-      color: '#38bdf8',
-      hitRadius: 4,
-      drawRadius: 5,
-      isEnemy: false,
-      lifeTime: 0,
-    });
-    this.bullets.push({
-      id: this.nextId++,
-      x: p.x + 7,
-      y: p.y - 12,
-      vx: 0,
-      vy: -15,
-      speed: 15,
-      angle: -Math.PI / 2,
-      kind: 'PELLET',
-      color: '#38bdf8',
-      hitRadius: 4,
-      drawRadius: 5,
-      isEnemy: false,
-      lifeTime: 0,
-    });
+    // 1. Character-Specific Main Shot
+    if (char === 'LYNN') {
+      // Lynn: Starlight Rays (고속 성광 레이저 빔)
+      this.bullets.push({
+        id: this.nextId++,
+        x: p.x - 7,
+        y: p.y - 12,
+        vx: 0,
+        vy: -16,
+        speed: 16,
+        angle: -Math.PI / 2,
+        kind: 'PELLET',
+        color: '#38bdf8',
+        hitRadius: 4,
+        drawRadius: 5,
+        isEnemy: false,
+        tag: 'lynn_main',
+        damage: 2.6,
+        lifeTime: 0,
+      });
+      this.bullets.push({
+        id: this.nextId++,
+        x: p.x + 7,
+        y: p.y - 12,
+        vx: 0,
+        vy: -16,
+        speed: 16,
+        angle: -Math.PI / 2,
+        kind: 'PELLET',
+        color: '#38bdf8',
+        hitRadius: 4,
+        drawRadius: 5,
+        isEnemy: false,
+        tag: 'lynn_main',
+        damage: 2.6,
+        lifeTime: 0,
+      });
+    } else if (char === 'MIYA') {
+      // Miya: Chrono Daggers (시계침 비도 - 은빛/바이올렛 고속 단검)
+      this.bullets.push({
+        id: this.nextId++,
+        x: p.x - 6,
+        y: p.y - 10,
+        vx: 0,
+        vy: -15.5,
+        speed: 15.5,
+        angle: -Math.PI / 2,
+        kind: 'KNIFE',
+        color: '#c084fc',
+        hitRadius: 4,
+        drawRadius: 6,
+        isEnemy: false,
+        tag: 'miya_main',
+        damage: 2.7,
+        lifeTime: 0,
+      });
+      this.bullets.push({
+        id: this.nextId++,
+        x: p.x + 6,
+        y: p.y - 10,
+        vx: 0,
+        vy: -15.5,
+        speed: 15.5,
+        angle: -Math.PI / 2,
+        kind: 'KNIFE',
+        color: '#c084fc',
+        hitRadius: 4,
+        drawRadius: 6,
+        isEnemy: false,
+        tag: 'miya_main',
+        damage: 2.7,
+        lifeTime: 0,
+      });
+    } else {
+      // Kaede: Crimson Exorcism Ofuda (홍련의 퇴마 부적)
+      this.bullets.push({
+        id: this.nextId++,
+        x: p.x - 7,
+        y: p.y - 12,
+        vx: 0,
+        vy: -14.5,
+        speed: 14.5,
+        angle: -Math.PI / 2,
+        kind: 'PELLET',
+        color: '#ef4444',
+        hitRadius: 5,
+        drawRadius: 6,
+        isEnemy: false,
+        tag: 'kaede_ofuda',
+        damage: 2.8,
+        lifeTime: 0,
+        onUpdate: (b, bFrame) => {
+          b.x += Math.sin(bFrame * 0.25) * 0.5;
+        },
+      });
+      this.bullets.push({
+        id: this.nextId++,
+        x: p.x + 7,
+        y: p.y - 12,
+        vx: 0,
+        vy: -14.5,
+        speed: 14.5,
+        angle: -Math.PI / 2,
+        kind: 'PELLET',
+        color: '#ef4444',
+        hitRadius: 5,
+        drawRadius: 6,
+        isEnemy: false,
+        tag: 'kaede_ofuda',
+        damage: 2.8,
+        lifeTime: 0,
+        onUpdate: (b, bFrame) => {
+          b.x -= Math.sin(bFrame * 0.25) * 0.5;
+        },
+      });
+    }
 
-    // Option Shots
+    // 2. Character-Specific Option Shots
     if (p.options.length > 0) {
       let optDmg = 1.03;
       if (p.power >= 16 && p.power < 48) optDmg = 1.2;
@@ -428,45 +515,192 @@ export class MoonlitEngine {
       }
 
       p.options.forEach((opt, idx) => {
-        let vx = 0;
-        let vy = -14;
-        let angle = -Math.PI / 2;
-
-        if (!focus) {
-          // Spread in fan & homing towards target (max 0.12 rad/frame)
-          const spreadAng = (idx - (p.options.length - 1) / 2) * 0.15;
-          angle = -Math.PI / 2 + spreadAng;
-          vx = Math.cos(angle) * 14;
-          vy = Math.sin(angle) * 14;
+        if (char === 'LYNN') {
+          // --- Lynn (Astra) ---
+          if (focus) {
+            // Shift: Piercing Starlight Laser Stream (관통형 성광 레이저 빔)
+            this.bullets.push({
+              id: this.nextId++,
+              x: opt.x,
+              y: opt.y - 8,
+              vx: 0,
+              vy: -17,
+              speed: 17,
+              angle: -Math.PI / 2,
+              kind: 'LASER',
+              color: '#38bdf8',
+              hitRadius: 4.5,
+              drawRadius: 8,
+              laserLength: 26,
+              isEnemy: false,
+              tag: 'lynn_laser',
+              damage: optDmg * 1.35,
+              piercing: true,
+              lifeTime: 0,
+            });
+          } else {
+            // Unfocused: Wide Starlight Star Shower (광역 부채꼴 황금 별탄)
+            const spreadAng = (idx - (p.options.length - 1) / 2) * 0.22;
+            const angle = -Math.PI / 2 + spreadAng;
+            this.bullets.push({
+              id: this.nextId++,
+              x: opt.x,
+              y: opt.y - 6,
+              vx: Math.cos(angle) * 14.5,
+              vy: Math.sin(angle) * 14.5,
+              speed: 14.5,
+              angle,
+              kind: 'STAR',
+              color: '#fbbf24',
+              hitRadius: 4,
+              drawRadius: 6.5,
+              isEnemy: false,
+              tag: 'lynn_star',
+              damage: optDmg * 1.1,
+              lifeTime: 0,
+              onUpdate: (b) => {
+                if (target) {
+                  const toAng = Math.atan2(target.y - b.y, target.x - b.x);
+                  const curAng = Math.atan2(b.vy, b.vx);
+                  const diff = toAng - curAng;
+                  const turn = Math.sign(Math.sin(diff)) * 0.08;
+                  const newAng = curAng + turn;
+                  b.vx = Math.cos(newAng) * b.speed;
+                  b.vy = Math.sin(newAng) * b.speed;
+                  b.angle = newAng;
+                }
+              },
+            });
+          }
+        } else if (char === 'MIYA') {
+          // --- Miya (Chrono) ---
+          if (focus) {
+            // Shift: Dense Parallel Time Piercing Needles (초정밀 시공 관통침)
+            this.bullets.push({
+              id: this.nextId++,
+              x: opt.x,
+              y: opt.y - 6,
+              vx: 0,
+              vy: -18,
+              speed: 18,
+              angle: -Math.PI / 2,
+              kind: 'PELLET',
+              color: '#818cf8',
+              hitRadius: 3,
+              drawRadius: 4,
+              isEnemy: false,
+              tag: 'miya_needle',
+              damage: optDmg * 1.25,
+              lifeTime: 0,
+            });
+          } else {
+            // Unfocused: Chrono Gears (시공간 지연 톱니바퀴 - 체공 후 초고속 유도 가속)
+            const sideDir = (idx - (p.options.length - 1) / 2) * 3.5;
+            this.bullets.push({
+              id: this.nextId++,
+              x: opt.x,
+              y: opt.y - 6,
+              vx: sideDir,
+              vy: -6,
+              speed: 16,
+              angle: -Math.PI / 2,
+              kind: 'PELLET',
+              color: '#a855f7',
+              hitRadius: 4.5,
+              drawRadius: 6,
+              isEnemy: false,
+              tag: 'miya_gear',
+              damage: optDmg * 1.2,
+              lifeTime: 0,
+              onUpdate: (b, bFrame) => {
+                if (bFrame < 10) {
+                  // Time delay slowdown
+                  b.vx *= 0.88;
+                  b.vy *= 0.88;
+                } else if (bFrame === 10) {
+                  // Temporal leap accelerate
+                  soundManager.playGraze();
+                  if (target) {
+                    const toAng = Math.atan2(target.y - b.y, target.x - b.x);
+                    b.vx = Math.cos(toAng) * b.speed;
+                    b.vy = Math.sin(toAng) * b.speed;
+                    b.angle = toAng;
+                  } else {
+                    b.vx = 0;
+                    b.vy = -b.speed;
+                  }
+                } else if (bFrame > 10 && target) {
+                  // Dynamic tracking
+                  const toAng = Math.atan2(target.y - b.y, target.x - b.x);
+                  const curAng = Math.atan2(b.vy, b.vx);
+                  const diff = toAng - curAng;
+                  const turn = Math.sign(Math.sin(diff)) * 0.18;
+                  const newAng = curAng + turn;
+                  b.vx = Math.cos(newAng) * b.speed;
+                  b.vy = Math.sin(newAng) * b.speed;
+                  b.angle = newAng;
+                }
+              },
+            });
+          }
+        } else {
+          // --- Kaede (Barrier Exorcist) ---
+          if (focus) {
+            // Shift: Consecrated Barrier Needles (봉마 침탄 집중 전개)
+            const spreadAng = (idx - (p.options.length - 1) / 2) * 0.04;
+            const angle = -Math.PI / 2 + spreadAng;
+            this.bullets.push({
+              id: this.nextId++,
+              x: opt.x,
+              y: opt.y - 6,
+              vx: Math.cos(angle) * 16,
+              vy: Math.sin(angle) * 16,
+              speed: 16,
+              angle,
+              kind: 'PELLET',
+              color: '#f43f5e',
+              hitRadius: 3.5,
+              drawRadius: 5,
+              isEnemy: false,
+              tag: 'kaede_needle',
+              damage: optDmg * 1.35,
+              lifeTime: 0,
+            });
+          } else {
+            // Unfocused: Crimson Yin-Yang Orbs (홍련의 음양옥 유도탄)
+            const spreadAng = (idx - (p.options.length - 1) / 2) * 0.35;
+            const angle = -Math.PI / 2 + spreadAng;
+            this.bullets.push({
+              id: this.nextId++,
+              x: opt.x,
+              y: opt.y - 6,
+              vx: Math.cos(angle) * 12,
+              vy: Math.sin(angle) * 12,
+              speed: 13.5,
+              angle,
+              kind: 'PELLET',
+              color: '#dc2626',
+              hitRadius: 4.5,
+              drawRadius: 5.5,
+              isEnemy: false,
+              tag: 'kaede_yin_yang',
+              damage: optDmg * 1.25,
+              lifeTime: 0,
+              onUpdate: (b) => {
+                if (target) {
+                  const toAng = Math.atan2(target.y - b.y, target.x - b.x);
+                  const curAng = Math.atan2(b.vy, b.vx);
+                  const diff = toAng - curAng;
+                  const turn = Math.sign(Math.sin(diff)) * 0.14;
+                  const newAng = curAng + turn;
+                  b.vx = Math.cos(newAng) * b.speed;
+                  b.vy = Math.sin(newAng) * b.speed;
+                  b.angle = newAng;
+                }
+              },
+            });
+          }
         }
-
-        this.bullets.push({
-          id: this.nextId++,
-          x: opt.x,
-          y: opt.y - 6,
-          vx,
-          vy,
-          speed: 14,
-          angle,
-          kind: 'PELLET',
-          color: focus ? '#38bdf8' : '#f43f5e',
-          hitRadius: 3.5,
-          drawRadius: 4.5,
-          isEnemy: false,
-          tag: focus ? undefined : 'homing',
-          lifeTime: 0,
-          onUpdate: (b) => {
-            if (!focus && target) {
-              const toAng = Math.atan2(target.y - b.y, target.x - b.x);
-              const curAng = Math.atan2(b.vy, b.vx);
-              const diff = toAng - curAng;
-              const turn = Math.sign(Math.sin(diff)) * 0.12;
-              const newAng = curAng + turn;
-              b.vx = Math.cos(newAng) * b.speed;
-              b.vy = Math.sin(newAng) * b.speed;
-            }
-          },
-        });
       });
     }
   }
@@ -669,24 +903,55 @@ export class MoonlitEngine {
   private checkStageTimeline() {
     const f = this.stageFrame;
 
-    // Squad Fairies (대열 요정)
-    if (f >= 100 && f <= 340 && f % 40 === 0) {
+    // 1. Squad Fairies (대열 요정 오프닝)
+    if (f >= 100 && f <= 300 && f % 40 === 0) {
       this.spawnSquadFairy(f % 80 === 0 ? 'left' : 'right');
     }
 
-    // Crossing Fairies (횡단 요정)
-    if (f >= 420 && f <= 720 && f % 50 === 0) {
+    // 2. NEW: Charger Fairies swoop (몸통박치기 돌진 요정 편대 기습!)
+    if (f >= 220 && f <= 380 && f % 45 === 0) {
+      const spawnX = f % 90 === 0 ? this.playX + 70 : this.playX + this.playW - 70;
+      this.spawnChargerFairy(spawnX);
+    }
+
+    // 3. Crossing Fairies (횡단 요정)
+    if (f >= 420 && f <= 680 && f % 50 === 0) {
       this.spawnCrossingFairy(f % 100 === 0 ? -1 : 1);
     }
 
-    // Big Fairy (큰 요정)
-    if (f === 800) {
+    // 4. NEW: Bouncing Yin-Yang Orbs (벽 반사 바운스 음양옥 돌진)
+    if (f >= 520 && f <= 720 && f % 65 === 0) {
+      const startX = f % 130 === 0 ? this.playX + 80 : this.playX + this.playW - 80;
+      const dirX = f % 130 === 0 ? 1 : -1;
+      this.spawnYinYangOrb(startX, dirX);
+    }
+
+    // 5. Big Fairy (큰 요정) with Spiral Barrage & Burst Orbs
+    if (f === 780) {
       this.spawnBigFairy();
     }
 
-    // Squad Wave 2
-    if (f >= 1100 && f <= 1380 && f % 35 === 0) {
+    // 6. NEW: Laser Sorceress Fairies & Butterfly Fairies
+    if (f >= 920 && f <= 1120 && f % 60 === 0) {
+      if (f % 120 === 0) {
+        this.spawnLaserFairy(this.playX + 70 + Math.random() * (this.playW - 140));
+      } else {
+        this.spawnButterflyFairy(
+          f % 240 === 60 ? this.playX + 30 : this.playX + this.playW - 30,
+          f % 240 === 60 ? 1 : -1
+        );
+      }
+    }
+
+    // 7. Mixed Swarm: Chargers + Yin-Yang Orbs + Squads before Mid-Boss
+    if (f >= 1180 && f <= 1400 && f % 40 === 0) {
       this.spawnSquadFairy('both');
+      if (f % 80 === 0) {
+        this.spawnChargerFairy(this.playX + 60 + Math.random() * (this.playW - 120));
+      }
+      if (f % 120 === 0) {
+        this.spawnYinYangOrb(this.playX + this.playW / 2 + (Math.random() - 0.5) * 80, Math.random() > 0.5 ? 1 : -1);
+      }
     }
 
     // Warning Siren -> Mid-boss Noah
@@ -699,10 +964,26 @@ export class MoonlitEngine {
     }
 
     // Post mid-boss waves (f resumed after Noah defeated)
-    if (f >= 2000 && f <= 2400 && f % 45 === 0) {
+    if (f >= 2000 && f <= 2360 && f % 40 === 0) {
       this.spawnSquadFairy('both');
+      if (f % 80 === 0) {
+        this.spawnChargerFairy(this.playX + 50 + Math.random() * (this.playW - 100));
+      }
+      if (f % 100 === 0) {
+        this.spawnYinYangOrb(this.playX + Math.random() * this.playW, Math.random() > 0.5 ? 1 : -1);
+      }
     }
-    if (f === 2500) {
+
+    // Post-midboss Laser Fairies & Butterflies
+    if (f >= 2400 && f <= 2620 && f % 55 === 0) {
+      this.spawnLaserFairy(this.playX + 80 + Math.random() * (this.playW - 160));
+      if (f % 110 === 0) {
+        this.spawnButterflyFairy(this.playX + 40, 1);
+        this.spawnButterflyFairy(this.playX + this.playW - 40, -1);
+      }
+    }
+
+    if (f === 2680) {
       this.spawnBigFairy();
     }
 
@@ -799,16 +1080,228 @@ export class MoonlitEngine {
       ],
       hitFlashTimer: 0,
       action: (e, frame) => {
+        const slow = this.timeSlowTimer > 0 ? 0.28 : 1.0;
         if (frame < 50) {
-          e.y += e.vy;
+          e.y += e.vy * slow;
         } else if (frame < 300) {
           // 5-second rotating spiral
           if (frame % 8 === 0) {
             const arms = Math.max(1, Math.round(3 * mult.bulletCount));
             this.fireSpiral(e.x, e.y, arms, frame * 0.12, 1.9 * mult.bulletSpeed, 'PELLET', '#fbbf24');
           }
+          // Occasional Burst Orbs aimed at player
+          if (frame === 100 || frame === 200) {
+            const toPlayer = Math.atan2(this.player.y - e.y, this.player.x - e.x);
+            this.fireBurstOrb(e.x, e.y, 2.0 * mult.bulletSpeed, toPlayer, '#ec4899', 8, 'RICE');
+          }
         } else {
-          e.y -= 1.5; // Exit upwards
+          e.y -= 1.5 * slow; // Exit upwards
+        }
+      },
+    });
+  }
+
+  // Charger Fairy (돌진 요정 - 몸통박치기 급습)
+  private spawnChargerFairy(x: number) {
+    const mult = this.getDiffMultipliers();
+    this.enemies.push({
+      id: this.nextId++,
+      kind: 'CHARGER_FAIRY',
+      x,
+      y: this.playY - 24,
+      vx: 0,
+      vy: 2.2,
+      targetY: this.playY + 50 + Math.random() * 40,
+      radius: 12,
+      hp: 8,
+      maxHp: 8,
+      frame: 0,
+      drops: [{ type: Math.random() > 0.5 ? 'SMALL_POWER' : 'POINT', count: 1 }],
+      hitFlashTimer: 0,
+      action: (e, frame) => {
+        const slow = this.timeSlowTimer > 0 ? 0.28 : 1.0;
+        if (frame < 22) {
+          e.y += e.vy * slow;
+        } else if (frame === 24) {
+          // Warning charge flash & sound
+          soundManager.playSpellDeclare();
+          this.createHitSpark(e.x, e.y);
+          // Lock target on player's position
+          const toAng = Math.atan2(this.player.y - e.y, this.player.x - e.x);
+          const chargeSpeed = 6.2 * mult.bulletSpeed;
+          e.vx = Math.cos(toAng) * chargeSpeed;
+          e.vy = Math.sin(toAng) * chargeSpeed;
+          // Hard/Lunatic: fires 2 side knife bullets on launch
+          if (this.difficulty === 'Hard' || this.difficulty === 'Lunatic') {
+            const side1 = toAng + Math.PI * 0.7;
+            const side2 = toAng - Math.PI * 0.7;
+            this.bullets.push({
+              id: this.nextId++,
+              x: e.x,
+              y: e.y,
+              vx: Math.cos(side1) * 2.2,
+              vy: Math.sin(side1) * 2.2,
+              speed: 2.2,
+              angle: side1,
+              kind: 'KNIFE',
+              color: '#f97316',
+              hitRadius: 2.5,
+              drawRadius: 5,
+              isEnemy: true,
+              lifeTime: 0,
+            });
+            this.bullets.push({
+              id: this.nextId++,
+              x: e.x,
+              y: e.y,
+              vx: Math.cos(side2) * 2.2,
+              vy: Math.sin(side2) * 2.2,
+              speed: 2.2,
+              angle: side2,
+              kind: 'KNIFE',
+              color: '#f97316',
+              hitRadius: 2.5,
+              drawRadius: 5,
+              isEnemy: true,
+              lifeTime: 0,
+            });
+          }
+        } else if (frame > 24) {
+          // High speed charge dive directly towards player
+          e.x += e.vx * slow;
+          e.y += e.vy * slow;
+          // Flame sparks trail
+          if (frame % 3 === 0) {
+            this.createHitSpark(e.x + (Math.random() - 0.5) * 8, e.y + (Math.random() - 0.5) * 8);
+          }
+        }
+      },
+    });
+  }
+
+  // Yin-Yang Orb (음양옥 - 벽 반사 탄성 바운스 몸통박치기 구체)
+  private spawnYinYangOrb(x: number, dirX: number) {
+    const mult = this.getDiffMultipliers();
+    this.enemies.push({
+      id: this.nextId++,
+      kind: 'YIN_YANG_ORB',
+      x,
+      y: this.playY - 24,
+      vx: dirX * 2.4,
+      vy: 1.8,
+      radius: 14,
+      hp: 15,
+      maxHp: 15,
+      frame: 0,
+      drops: [
+        { type: 'POINT', count: 2 },
+        { type: 'SMALL_POWER', count: 1 },
+      ],
+      hitFlashTimer: 0,
+      action: (e, frame) => {
+        const slow = this.timeSlowTimer > 0 ? 0.28 : 1.0;
+        e.x += e.vx * slow;
+        e.y += e.vy * slow;
+
+        // Bounce off left/right playfield borders
+        const minX = this.playX + e.radius;
+        const maxX = this.playX + this.playW - e.radius;
+        if (e.x <= minX) {
+          e.x = minX;
+          e.vx = Math.abs(e.vx);
+          soundManager.playGraze();
+          this.createHitSpark(e.x, e.y);
+        } else if (e.x >= maxX) {
+          e.x = maxX;
+          e.vx = -Math.abs(e.vx);
+          soundManager.playGraze();
+          this.createHitSpark(e.x, e.y);
+        }
+
+        // Fire 2 star bullets sideways every 36 frames
+        if (frame % 36 === 0 && e.y < this.playY + this.playH - 80) {
+          this.bullets.push({
+            id: this.nextId++,
+            x: e.x,
+            y: e.y,
+            vx: -e.vx * 0.8,
+            vy: 1.4 * mult.bulletSpeed,
+            speed: 1.8 * mult.bulletSpeed,
+            angle: Math.atan2(1.4, -e.vx * 0.8),
+            kind: 'STAR',
+            color: '#dc2626',
+            hitRadius: 3,
+            drawRadius: 7,
+            isEnemy: true,
+            lifeTime: 0,
+          });
+        }
+      },
+    });
+  }
+
+  // Laser Fairy (레이저 마도사 요정 - 관통형 란스 빔 및 별탄 사격)
+  private spawnLaserFairy(x: number) {
+    const mult = this.getDiffMultipliers();
+    this.enemies.push({
+      id: this.nextId++,
+      kind: 'LASER_FAIRY',
+      x,
+      y: this.playY - 25,
+      vx: 0,
+      vy: 1.6,
+      targetY: this.playY + 70 + Math.random() * 40,
+      radius: 12,
+      hp: 22,
+      maxHp: 22,
+      frame: 0,
+      drops: [
+        { type: 'BIG_POWER', count: 1 },
+        { type: 'POINT', count: 3 },
+      ],
+      hitFlashTimer: 0,
+      action: (e, frame) => {
+        const slow = this.timeSlowTimer > 0 ? 0.28 : 1.0;
+        if (frame < 35) {
+          e.y += e.vy * slow;
+        } else if (frame === 45) {
+          // Aimed Laser Lance
+          const toAng = Math.atan2(this.player.y - e.y, this.player.x - e.x);
+          this.fireLaserLance(e.x, e.y, toAng, 4.8 * mult.bulletSpeed, '#6366f1', 38);
+          soundManager.playLaserBeam();
+        } else if (frame === 65) {
+          // Star bullet ring
+          this.fireStarRing(e.x, e.y, Math.max(1, Math.round(6 * mult.bulletCount)), frame * 0.1, 1.8 * mult.bulletSpeed, '#a855f7');
+        } else if (frame > 95) {
+          e.y -= 1.8 * slow;
+        }
+      },
+    });
+  }
+
+  // Butterfly Fairy (나비탄 요정 - 파동형 나비탄 커튼)
+  private spawnButterflyFairy(startX: number, dirX: number) {
+    const mult = this.getDiffMultipliers();
+    this.enemies.push({
+      id: this.nextId++,
+      kind: 'SQUAD_FAIRY',
+      x: startX,
+      y: this.playY + 70 + Math.random() * 50,
+      vx: dirX * 1.5,
+      vy: 0,
+      radius: 11,
+      hp: 12,
+      maxHp: 12,
+      frame: 0,
+      drops: [{ type: 'POINT', count: 2 }],
+      hitFlashTimer: 0,
+      action: (e, frame) => {
+        const slow = this.timeSlowTimer > 0 ? 0.28 : 1.0;
+        e.x += e.vx * slow;
+        e.y += Math.sin(frame * 0.08) * 1.6 * slow;
+        if (frame % 50 === 0 && e.x > this.playX + 40 && e.x < this.playX + this.playW - 40) {
+          const count = Math.max(1, Math.round(4 * mult.bulletCount));
+          this.fireButterflySpread(e.x, e.y, count, 0.7, 1.8 * mult.bulletSpeed, '#ec4899');
         }
       },
     });
@@ -864,7 +1357,7 @@ export class MoonlitEngine {
           this.addBanner('요정부「반딧불 원무」', 'BONUS: 500,000', '#fbbf24', 120, true);
         },
         onUpdate: (b, frame) => {
-          // Orbiting firefly bullets that accelerate towards player after 50 frames
+          // Orbiting firefly STAR bullets that accelerate towards player after 50 frames
           if (frame % 18 === 0) {
             const count = Math.max(1, Math.round(4 * mult.bulletCount));
             for (let i = 0; i < count; i++) {
@@ -877,15 +1370,15 @@ export class MoonlitEngine {
                 vy: Math.sin(ang) * 0.5,
                 speed: 0.5,
                 angle: ang,
-                kind: 'SMALL',
+                kind: 'STAR',
                 color: '#34d399',
-                hitRadius: 2.5,
-                drawRadius: 4,
+                hitRadius: 2.8,
+                drawRadius: 6,
                 isEnemy: true,
                 lifeTime: 0,
                 onUpdate: (bullet, bFrame, p) => {
                   if (bFrame === 50) {
-                    bullet.color = '#fbbf24'; // turn yellow
+                    bullet.color = '#fbbf24'; // turn golden
                     const toPlayer = Math.atan2(p.y - bullet.y, p.x - bullet.x);
                     bullet.angle = toPlayer;
                     bullet.vx = Math.cos(toPlayer) * 2.8 * mult.bulletSpeed;
@@ -895,9 +1388,13 @@ export class MoonlitEngine {
               });
             }
           }
+          // Fluttering butterfly spread waves
+          if (frame % 54 === 0) {
+            this.fireButterflySpread(b.x, b.y, Math.max(1, Math.round(5 * mult.bulletCount)), 0.6, 2.0 * mult.bulletSpeed, '#10b981');
+          }
           // Aimed knife bullets occasionally
-          if (frame % 60 === 0) {
-            this.fireAimedSpread(b.x, b.y, mult.aimedCount, 0.4, 2.4 * mult.bulletSpeed, 'KNIFE', '#10b981');
+          if (frame % 72 === 0) {
+            this.fireAimedSpread(b.x, b.y, mult.aimedCount, 0.4, 2.4 * mult.bulletSpeed, 'KNIFE', '#34d399');
           }
         },
       },
@@ -950,6 +1447,11 @@ export class MoonlitEngine {
             const color = (frame % 18 === 0) ? '#ef4444' : '#ec4899';
             this.fireRing(b.x, b.y, count, frame * 0.12, 1.8 * mult.bulletSpeed, 'SMALL', color);
           }
+          // Rotating Star ring every 45 frames
+          if (frame % 45 === 0) {
+            const count = Math.max(1, Math.round(10 * mult.bulletCount));
+            this.fireStarRing(b.x, b.y, count, frame * 0.08, 1.6 * mult.bulletSpeed, '#c084fc');
+          }
           // Aimed knife fan every 1s
           if (frame % 60 === 0) {
             this.fireAimedSpread(b.x, b.y, mult.aimedCount, 0.5, 2.5 * mult.bulletSpeed, 'KNIFE', '#38bdf8');
@@ -995,14 +1497,21 @@ export class MoonlitEngine {
               }
             });
           } else if (cycleF === 192) {
-            // After 0.7s (42 frames), slowly release in random angles
+            // Release frozen bullets as sparkling Ice Stars + piercing Frost Laser Lance!
+            const toPlayer = Math.atan2(this.player.y - b.y, this.player.x - b.x);
+            this.fireLaserLance(b.x, b.y, toPlayer, 5.2 * mult.bulletSpeed, '#38bdf8', 44);
+            soundManager.playLaserBeam();
+
             this.bullets.forEach((bullet) => {
               if (bullet.tag === 'frost') {
                 const ang = Math.random() * Math.PI * 2;
                 bullet.color = '#67e8f9';
+                bullet.kind = 'STAR';
+                bullet.drawRadius = 7;
+                bullet.hitRadius = 3;
                 bullet.angle = ang;
-                bullet.vx = Math.cos(ang) * 1.4 * mult.bulletSpeed;
-                bullet.vy = Math.sin(ang) * 1.4 * mult.bulletSpeed;
+                bullet.vx = Math.cos(ang) * 1.5 * mult.bulletSpeed;
+                bullet.vy = Math.sin(ang) * 1.5 * mult.bulletSpeed;
                 bullet.tag = undefined;
               }
             });
@@ -1074,6 +1583,11 @@ export class MoonlitEngine {
               },
             });
           }
+          // Burst Orb that detonates into knife spread every 65 frames!
+          if (frame % 65 === 0) {
+            const toPlayer = Math.atan2(this.player.y - b.y, this.player.x - b.x);
+            this.fireBurstOrb(b.x, b.y, 2.2 * mult.bulletSpeed, toPlayer, '#ef4444', 8, 'KNIFE');
+          }
           // 4-tier aimed knife fan with variable speeds every 1.3s (78 frames)
           if (frame % 78 === 0) {
             const speeds = [2.0, 2.4, 2.8, 3.2];
@@ -1101,11 +1615,16 @@ export class MoonlitEngine {
           this.addBanner('종막「천 개의 등불」', 'FINAL SPELL - BONUS: 2,500,000', '#f59e0b', 140, true);
         },
         onUpdate: (b, frame) => {
-          // Dual accelerating spirals (yellow/purple)
+          // Dual accelerating spirals (yellow/purple) with alternating STAR bullets
           if (frame % 8 === 0) {
             const arms = Math.max(1, Math.round(4 * mult.bulletCount));
-            this.fireSpiral(b.x, b.y, arms, frame * 0.1, 1.9 * mult.bulletSpeed, 'PELLET', '#fbbf24');
-            this.fireSpiral(b.x, b.y, arms, -frame * 0.1, 1.9 * mult.bulletSpeed, 'PELLET', '#c084fc');
+            const bulletType = frame % 16 === 0 ? 'STAR' : 'PELLET';
+            this.fireSpiral(b.x, b.y, arms, frame * 0.1, 1.9 * mult.bulletSpeed, bulletType, '#fbbf24');
+            this.fireSpiral(b.x, b.y, arms, -frame * 0.1, 1.9 * mult.bulletSpeed, bulletType, '#c084fc');
+          }
+          // Swirling Butterfly Spread every 50 frames
+          if (frame % 50 === 0) {
+            this.fireButterflySpread(b.x, b.y, Math.max(1, Math.round(5 * mult.bulletCount)), 0.8, 1.8 * mult.bulletSpeed, '#f43f5e');
           }
           // 36-large-bullet ring every 2.5s (150 frames)
           if (frame % 150 === 0) {
@@ -1321,12 +1840,13 @@ export class MoonlitEngine {
 
       // 1. Player Bullets vs Enemies / Boss
       if (!b.isEnemy) {
+        const dmg = b.damage ?? 2.6;
         let hit = false;
         // Check Boss
         if (this.boss && this.boss.invincibleTimer <= 0) {
           const dist = Math.hypot(b.x - this.boss.x, b.y - this.boss.y);
           if (dist <= this.boss.radius + b.hitRadius) {
-            this.boss.hp -= 2.6;
+            this.boss.hp -= dmg;
             this.boss.hitFlashTimer = 2;
             this.addScore(10); // 10 pts per hit
             this.createHitSpark(b.x, b.y);
@@ -1334,21 +1854,21 @@ export class MoonlitEngine {
           }
         }
         // Check Minions
-        if (!hit) {
+        if (!hit || b.piercing) {
           for (const e of this.enemies) {
             const dist = Math.hypot(b.x - e.x, b.y - e.y);
             if (dist <= e.radius + b.hitRadius) {
-              e.hp -= 2.6;
+              e.hp -= dmg;
               e.hitFlashTimer = 2;
               this.addScore(10);
               this.createHitSpark(b.x, b.y);
               if (e.hp <= 0) this.destroyEnemy(e);
               hit = true;
-              break;
+              if (!b.piercing) break;
             }
           }
         }
-        if (hit) {
+        if (hit && !b.piercing) {
           this.bullets.splice(i, 1);
           continue;
         }
@@ -1633,6 +2153,156 @@ export class MoonlitEngine {
         drawRadius: 5,
         isEnemy: true,
         tag,
+        lifeTime: 0,
+      });
+    }
+  }
+
+  public fireLaserLance(
+    originX: number,
+    originY: number,
+    angle: number,
+    speed: number,
+    color: string,
+    length: number = 36
+  ) {
+    this.bullets.push({
+      id: this.nextId++,
+      x: originX,
+      y: originY,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      speed,
+      angle,
+      kind: 'LASER',
+      laserLength: length,
+      color,
+      hitRadius: 4.5,
+      drawRadius: 9,
+      isEnemy: true,
+      lifeTime: 0,
+    });
+  }
+
+  public fireButterflySpread(
+    originX: number,
+    originY: number,
+    count: number,
+    arcAngle: number,
+    speed: number,
+    color: string
+  ) {
+    const baseAngle = Math.atan2(this.player.y - originY, this.player.x - originX);
+    const startAngle = count === 1 ? baseAngle : baseAngle - arcAngle / 2;
+    const step = count > 1 ? arcAngle / (count - 1) : 0;
+
+    for (let i = 0; i < count; i++) {
+      const ang = startAngle + i * step;
+      this.bullets.push({
+        id: this.nextId++,
+        x: originX,
+        y: originY,
+        vx: Math.cos(ang) * speed,
+        vy: Math.sin(ang) * speed,
+        speed,
+        angle: ang,
+        kind: 'BUTTERFLY',
+        color,
+        hitRadius: 3.5,
+        drawRadius: 7,
+        isEnemy: true,
+        lifeTime: 0,
+        onUpdate: (b, bFrame) => {
+          // Fluttering wave oscillation
+          const perp = b.angle + Math.PI / 2;
+          const wobble = Math.sin(bFrame * 0.15) * 1.4;
+          b.x += Math.cos(perp) * wobble;
+          b.y += Math.sin(perp) * wobble;
+        },
+      });
+    }
+  }
+
+  public fireBurstOrb(
+    originX: number,
+    originY: number,
+    speed: number,
+    angle: number,
+    color: string,
+    burstCount: number = 8,
+    burstKind: BulletKind = 'SMALL'
+  ) {
+    this.bullets.push({
+      id: this.nextId++,
+      x: originX,
+      y: originY,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      speed,
+      angle,
+      kind: 'BURST_ORB',
+      color,
+      hitRadius: 5.5,
+      drawRadius: 9,
+      isEnemy: true,
+      lifeTime: 0,
+      splitTime: 55,
+      onUpdate: (b, bFrame) => {
+        if (bFrame === (b.splitTime || 55)) {
+          // Detonate!
+          soundManager.playIceFreeze();
+          this.createHitSpark(b.x, b.y);
+          const step = (Math.PI * 2) / burstCount;
+          for (let j = 0; j < burstCount; j++) {
+            const outAng = j * step;
+            this.bullets.push({
+              id: this.nextId++,
+              x: b.x,
+              y: b.y,
+              vx: Math.cos(outAng) * 2.2,
+              vy: Math.sin(outAng) * 2.2,
+              speed: 2.2,
+              angle: outAng,
+              kind: burstKind,
+              color: '#f43f5e',
+              hitRadius: 2.5,
+              drawRadius: 4.5,
+              isEnemy: true,
+              lifeTime: 0,
+            });
+          }
+          // Remove burst orb by sending it far out
+          b.x = -9999;
+          b.y = -9999;
+        }
+      },
+    });
+  }
+
+  public fireStarRing(
+    originX: number,
+    originY: number,
+    count: number,
+    offsetAngle: number,
+    speed: number,
+    color: string
+  ) {
+    const step = (Math.PI * 2) / count;
+    for (let i = 0; i < count; i++) {
+      const ang = offsetAngle + i * step;
+      this.bullets.push({
+        id: this.nextId++,
+        x: originX,
+        y: originY,
+        vx: Math.cos(ang) * speed,
+        vy: Math.sin(ang) * speed,
+        speed,
+        angle: ang,
+        kind: 'STAR',
+        color,
+        hitRadius: 3,
+        drawRadius: 7,
+        isEnemy: true,
         lifeTime: 0,
       });
     }
