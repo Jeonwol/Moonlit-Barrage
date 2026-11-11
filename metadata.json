@@ -1,0 +1,6 @@
+{
+  "name": "월하탄막 ~ Moonlit Barrage",
+  "description": "동방프로젝트(EoSD) 시스템을 오마주한 1스테이지 종스크롤 탄막 슈팅 게임. 저속 모드와 코어 판정(2.2px), 데스봄, 아이템 회수 라인, 그레이즈, 2명의 보스와 5개 스펠카드 패턴 완벽 지원.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
